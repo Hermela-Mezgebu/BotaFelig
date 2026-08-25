@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -7,11 +8,9 @@ export default function Navbar() {
       className="
         sticky top-0 z-50
         border-b border-zinc-200/80
-        bg-white/85 backdrop-blur-xl
-        transition-colors duration-300
-
+        bg-white/80 backdrop-blur-xl
         dark:border-zinc-800/80
-        dark:bg-zinc-950/85
+        dark:bg-zinc-950/80
       "
     >
       <div
@@ -21,49 +20,50 @@ export default function Navbar() {
           px-4 sm:px-6 lg:px-8
         "
       >
-        {/* ================= LOGO ================= */}
-        <Logo />
+        {/* Logo */}
+        <Link href="/">
+          <Logo />
+        </Link>
 
-        {/* ================= DESKTOP NAVIGATION ================= */}
+        {/* Desktop Navigation */}
         <div className="hidden items-center gap-7 lg:flex">
           {/* Explore */}
           <a
             href="#explore"
             className="
-              relative py-2
-              text-sm font-bold
+              text-sm font-semibold
               text-[#A04100]
-              transition-colors duration-200
+              transition-colors
               hover:text-[#FD7C33]
-
               dark:text-[#FD7C33]
-              dark:hover:text-[#FF9B68]
-
-              after:absolute
-              after:bottom-0
-              after:left-0
-              after:h-0.5
-              after:w-full
-              after:rounded-full
-              after:bg-[#A04100]
-              after:content-['']
-
-              dark:after:bg-[#FD7C33]
             "
           >
             Explore
           </a>
 
+          {/* Billboards */}
+          <Link
+            href="/billboards"
+            className="
+              text-sm font-medium
+              text-zinc-600
+              transition-colors
+              hover:text-[#A04100]
+              dark:text-zinc-300
+              dark:hover:text-[#FD7C33]
+            "
+          >
+            Billboards
+          </Link>
+
           {/* Map */}
           <a
             href="#map"
             className="
-              py-2
               text-sm font-medium
               text-zinc-600
-              transition-colors duration-200
+              transition-colors
               hover:text-[#A04100]
-
               dark:text-zinc-300
               dark:hover:text-[#FD7C33]
             "
@@ -75,12 +75,10 @@ export default function Navbar() {
           <a
             href="#how-it-works"
             className="
-              py-2
               text-sm font-medium
               text-zinc-600
-              transition-colors duration-200
+              transition-colors
               hover:text-[#A04100]
-
               dark:text-zinc-300
               dark:hover:text-[#FD7C33]
             "
@@ -92,12 +90,10 @@ export default function Navbar() {
           <a
             href="#bookings"
             className="
-              py-2
               text-sm font-medium
               text-zinc-600
-              transition-colors duration-200
+              transition-colors
               hover:text-[#A04100]
-
               dark:text-zinc-300
               dark:hover:text-[#FD7C33]
             "
@@ -109,12 +105,10 @@ export default function Navbar() {
           <a
             href="#owners"
             className="
-              py-2
               text-sm font-medium
               text-zinc-600
-              transition-colors duration-200
+              transition-colors
               hover:text-[#A04100]
-
               dark:text-zinc-300
               dark:hover:text-[#FD7C33]
             "
@@ -123,109 +117,51 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* ================= RIGHT SIDE ================= */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Right Side */}
+        <div className="flex items-center gap-3">
           {/* Theme Toggle */}
           <ThemeToggle />
 
           {/* Login */}
-          <a
+          <Link
             href="/login"
             className="
-              hidden
-              rounded-lg
+              hidden rounded-full
               border border-zinc-300
-              bg-white
-              px-4 py-2.5
+              px-5 py-2.5
               text-sm font-bold
-              text-zinc-800
-              transition-all duration-200
-
+              text-zinc-700
+              transition-all
               hover:border-[#A04100]
               hover:text-[#A04100]
-              hover:shadow-sm
-
               sm:block
-
               dark:border-zinc-700
-              dark:bg-zinc-900
-              dark:text-zinc-100
-
+              dark:text-zinc-200
               dark:hover:border-[#FD7C33]
               dark:hover:text-[#FD7C33]
             "
           >
             Login
-          </a>
+          </Link>
 
           {/* Get Started */}
-          <a
-            href="/register"
+          <Link
+            href="/signup"
             className="
-              hidden
-              rounded-lg
+              hidden rounded-full
               bg-[#A04100]
               px-5 py-2.5
-              text-sm font-bold
-              text-white
-              shadow-sm
-              transition-all duration-200
-
-              hover:bg-[#8B3800]
-              hover:shadow-md
-              hover:-translate-y-0.5
-
+              text-sm font-bold text-white
+              transition-all
+              hover:bg-[#8b3800]
               sm:block
-
               dark:bg-[#FD7C33]
               dark:text-zinc-950
-
-              dark:hover:bg-[#FF985E]
+              dark:hover:bg-[#ff985e]
             "
           >
             Get Started
-          </a>
-
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            aria-label="Open navigation menu"
-            className="
-              flex h-10 w-10
-              items-center justify-center
-              rounded-lg
-              border border-zinc-200
-              bg-white
-              text-zinc-700
-              transition-colors
-
-              hover:border-zinc-300
-              hover:bg-zinc-50
-
-              lg:hidden
-
-              dark:border-zinc-700
-              dark:bg-zinc-900
-              dark:text-zinc-200
-
-              dark:hover:bg-zinc-800
-            "
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.8}
-              stroke="currentColor"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
+          </Link>
         </div>
       </div>
     </nav>
