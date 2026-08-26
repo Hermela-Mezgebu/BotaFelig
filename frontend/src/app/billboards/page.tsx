@@ -12,7 +12,7 @@ import {
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import BillboardCard from "@/components/BillboardCard";
+import BillboardCard from "@/components/billboard/BillboardCard";
 import BillboardFilters from "@/components/BillboardFilters";
 
 export type Billboard = {

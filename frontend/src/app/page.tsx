@@ -3,23 +3,17 @@
 import {
   ArrowLeftRight,
   ArrowRight,
-  CalendarDays,
-  ChevronDown,
-  MapPin,
   Megaphone,
   Search,
-  SlidersHorizontal,
   TicketCheck,
 } from "lucide-react";
 
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import Hero from "@/components/Hero";
-import BillboardGrid from "@/components/BillboardGrid";
-
+import { BILLBOARDS } from "@/data/billboards";
+import BillboardCard from "@/components/billboard/BillboardCard";
 export default function Home() {
-  const heroVideo =
-  process.env.NEXT_PUBLIC_CLOUDINARY_HERO_VIDEO_URL;
   return (
     <main
       className="
@@ -29,7 +23,6 @@ export default function Home() {
         text-slate-950
         transition-colors
         duration-300
-
         dark:bg-[#080d16]
         dark:text-white
       "
@@ -40,7 +33,11 @@ export default function Home() {
 
       <Navbar />
 
-<Hero/>
+      {/* =========================================================
+          HERO
+      ========================================================== */}
+
+      <Hero />
 
       {/* =========================================================
           POPULAR LOCATIONS
@@ -54,13 +51,11 @@ export default function Home() {
           py-20
           transition-colors
           duration-300
-
           dark:bg-[#080d16]
           lg:px-8
         "
       >
         <div className="mx-auto max-w-7xl">
-
           <div
             className="
               mb-10
@@ -94,7 +89,6 @@ export default function Home() {
                   tracking-tight
                   text-slate-950
                   sm:text-4xl
-
                   dark:text-white
                 "
               >
@@ -109,7 +103,6 @@ export default function Home() {
                   leading-6
                   text-slate-500
                   sm:text-base
-
                   dark:text-slate-400
                 "
               >
@@ -118,10 +111,11 @@ export default function Home() {
               </p>
             </div>
 
-            <button
-              type="button"
+            <a
+              href="/billboards"
               className="
                 flex
+                w-fit
                 items-center
                 gap-2
                 text-sm
@@ -129,16 +123,16 @@ export default function Home() {
                 text-orange-600
                 transition
                 hover:text-orange-700
-
                 dark:text-orange-400
                 dark:hover:text-orange-300
               "
             >
               View all
-
               <ArrowRight size={17} />
-            </button>
+            </a>
           </div>
+
+          {/* Location cards */}
 
           <div
             className="
@@ -188,7 +182,123 @@ export default function Home() {
         </div>
       </section>
 
-      <BillboardGrid/>
+      {/* =========================================================
+    FEATURED BILLBOARDS
+========================================================= */}
+
+<section
+  id="billboards"
+  className="
+    bg-[#f8f9ff]
+    px-5
+    py-20
+    transition-colors
+    duration-300
+    dark:bg-[#080d16]
+    lg:px-8
+  "
+>
+  <div className="mx-auto max-w-7xl">
+
+    <div
+      className="
+        mb-10
+        flex
+        flex-col
+        justify-between
+        gap-5
+        sm:flex-row
+        sm:items-end
+      "
+    >
+      <div>
+        <p
+          className="
+            mb-2
+            text-sm
+            font-bold
+            uppercase
+            tracking-widest
+            text-orange-600
+            dark:text-orange-400
+          "
+        >
+          Premium Advertising Spaces
+        </p>
+
+        <h2
+          className="
+            text-3xl
+            font-extrabold
+            tracking-tight
+            text-slate-950
+            sm:text-4xl
+            dark:text-white
+          "
+        >
+          Featured Billboards
+        </h2>
+
+        <p
+          className="
+            mt-3
+            max-w-xl
+            text-sm
+            leading-6
+            text-slate-500
+            sm:text-base
+            dark:text-slate-400
+          "
+        >
+          Discover premium billboard locations across Addis Ababa
+          and find the perfect place for your next campaign.
+        </p>
+      </div>
+
+      <a
+        href="/billboards"
+        className="
+          flex
+          w-fit
+          items-center
+          gap-2
+          text-sm
+          font-bold
+          text-orange-600
+          transition
+          hover:text-orange-700
+          dark:text-orange-400
+          dark:hover:text-orange-300
+        "
+      >
+        View all billboards
+        <ArrowRight size={17} />
+      </a>
+    </div>
+
+    {/* Billboard cards */}
+
+    <div
+      className="
+        grid
+        grid-cols-1
+        gap-5
+        sm:grid-cols-2
+        lg:grid-cols-3
+        xl:grid-cols-4
+      "
+    >
+      {BILLBOARDS.slice(0, 8).map((billboard) => (
+        <BillboardCard
+          key={billboard.id}
+          billboard={billboard}
+          listView={false}
+        />
+      ))}
+    </div>
+
+  </div>
+</section>
 
       {/* =========================================================
           HOW IT WORKS
@@ -202,14 +312,11 @@ export default function Home() {
           py-24
           transition-colors
           duration-300
-
           dark:bg-[#0b1220]
-
           lg:px-8
         "
       >
         <div className="mx-auto max-w-7xl text-center">
-
           <p
             className="
               mb-2
@@ -218,7 +325,6 @@ export default function Home() {
               uppercase
               tracking-widest
               text-orange-600
-
               dark:text-orange-400
             "
           >
@@ -232,7 +338,6 @@ export default function Home() {
               tracking-tight
               text-slate-950
               sm:text-4xl
-
               dark:text-white
             "
           >
@@ -248,7 +353,6 @@ export default function Home() {
               leading-6
               text-slate-500
               sm:text-base
-
               dark:text-slate-400
             "
           >
@@ -259,7 +363,6 @@ export default function Home() {
           {/* Steps */}
 
           <div className="relative mt-16">
-
             {/* Connecting line */}
 
             <div
@@ -271,9 +374,7 @@ export default function Home() {
                 hidden
                 h-px
                 bg-slate-200
-
                 dark:bg-slate-700
-
                 md:block
               "
             />
@@ -351,9 +452,7 @@ export default function Home() {
           py-20
           transition-colors
           duration-300
-
           dark:bg-[#080d16]
-
           lg:px-8
         "
       >
@@ -369,11 +468,9 @@ export default function Home() {
             text-center
             shadow-xl
             shadow-slate-950/10
-
             dark:border
             dark:border-slate-800
             dark:bg-slate-900
-
             sm:px-12
             lg:py-20
           "
@@ -422,8 +519,8 @@ export default function Home() {
             Ethiopia.
           </p>
 
-          <button
-            type="button"
+          <a
+            href="/billboards/new"
             className="
               mt-8
               inline-flex
@@ -443,9 +540,8 @@ export default function Home() {
             "
           >
             List Your Billboard
-
             <ArrowRight size={18} />
-          </button>
+          </a>
         </div>
       </section>
 
@@ -481,7 +577,6 @@ function LocationCard({
         rounded-2xl
         bg-slate-200
         shadow-sm
-
         dark:bg-slate-800
       "
     >
@@ -535,8 +630,8 @@ function LocationCard({
           </p>
         </div>
 
-        <button
-          type="button"
+        <a
+          href={`/billboards?location=${encodeURIComponent(name)}`}
           aria-label={`Explore ${name}`}
           className="
             rounded-lg
@@ -549,13 +644,11 @@ function LocationCard({
           "
         >
           <ArrowRight size={18} />
-        </button>
+        </a>
       </div>
     </div>
   );
 }
-
-
 
 /* =============================================================
    HOW IT WORKS STEP
@@ -574,7 +667,6 @@ function HowStep({
 }) {
   return (
     <div className="relative z-10 flex flex-col items-center">
-
       {/* Icon */}
 
       <div
@@ -592,7 +684,6 @@ function HowStep({
           shadow-sm
           transition-all
           duration-300
-
           dark:border-orange-900/50
           dark:bg-orange-950/40
           dark:text-orange-400
@@ -609,9 +700,7 @@ function HowStep({
           text-sm
           font-bold
           text-slate-950
-
           dark:text-white
-
           sm:text-base
         "
       >
@@ -627,9 +716,7 @@ function HowStep({
           text-xs
           leading-5
           text-slate-500
-
           dark:text-slate-400
-
           sm:text-sm
         "
       >

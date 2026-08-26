@@ -10,6 +10,10 @@ export type Billboard = {
   price: number;
   availability: string;
   image: string;
+
+  // Additional images for billboard detail page
+  galleryImages?: string[];
+
   featured?: boolean;
 };
 
@@ -17,7 +21,7 @@ export const BILLBOARDS: Billboard[] = [
   {
     id: "bole-ring-road-premium",
     title: "Bole Ring Road Premium Static",
-    location: "Bole, Addis Ababa",
+    location: "Bole Ring Road, near Millennium Hall, Addis Ababa",
     city: "Bole",
     type: "Static",
     size: "12m × 5m",
@@ -25,8 +29,18 @@ export const BILLBOARDS: Billboard[] = [
     height: 5,
     price: 15000,
     availability: "Available Now",
+
     image:
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=85",
+
+    galleryImages: [
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=85",
+
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=85",
+
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1000&q=85",
+    ],
+
     featured: true,
   },
 
@@ -41,8 +55,18 @@ export const BILLBOARDS: Billboard[] = [
     height: 4,
     price: 25000,
     availability: "Available in 2 Weeks",
+
     image:
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=85",
+
+    galleryImages: [
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=85",
+
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1000&q=85",
+
+      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1000&q=85",
+    ],
+
     featured: true,
   },
 
@@ -57,8 +81,17 @@ export const BILLBOARDS: Billboard[] = [
     height: 4,
     price: 32000,
     availability: "Available Now",
+
     image:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=85",
+
+    galleryImages: [
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=85",
+
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85",
+
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1000&q=85",
+    ],
   },
 
   {
@@ -72,8 +105,17 @@ export const BILLBOARDS: Billboard[] = [
     height: 5,
     price: 18000,
     availability: "Available Now",
+
     image:
-      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1600&q=85",
+
+    galleryImages: [
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1600&q=85",
+
+      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1000&q=85",
+
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1000&q=85",
+    ],
   },
 
   {
@@ -87,8 +129,18 @@ export const BILLBOARDS: Billboard[] = [
     height: 6,
     price: 45000,
     availability: "Available Now",
+
     image:
-      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1600&q=85",
+
+    galleryImages: [
+      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1600&q=85",
+
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85",
+
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1000&q=85",
+    ],
+
     featured: true,
   },
 
@@ -103,7 +155,16 @@ export const BILLBOARDS: Billboard[] = [
     height: 8,
     price: 55000,
     availability: "Available in 1 Month",
+
     image:
-      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1600&q=85",
+
+    galleryImages: [
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1600&q=85",
+
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=85",
+
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85",
+    ],
   },
 ];

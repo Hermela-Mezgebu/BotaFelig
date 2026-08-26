@@ -1,4 +1,4 @@
-import BillboardCard from "@/components/BillboardCard";
+import BillboardCard from "./BillboardCard";
 import { BILLBOARDS } from "@/data/billboards";
 
 export default function BillboardGrid() {
@@ -29,7 +29,7 @@ export default function BillboardGrid() {
             <BillboardCard
               key={billboard.id}
               billboard={billboard}
-              
+              listView={false}
             />
           ))}
         </div>

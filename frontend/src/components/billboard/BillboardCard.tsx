@@ -27,7 +27,7 @@ export default function BillboardCard({
     return (
       <article
         className="
-          group flex flex-col overflow-hidden rounded-2xl
+          group flex flex-col overflow-hidden rounded-3xl
           border border-zinc-200/80 bg-white
           shadow-sm transition-all duration-300
           hover:border-orange-200 hover:shadow-lg
