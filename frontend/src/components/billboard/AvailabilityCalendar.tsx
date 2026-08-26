@@ -6,6 +6,7 @@ import {
   Check,
   X,
 } from "lucide-react";
+
 import {
   useCallback,
   useEffect,
@@ -17,33 +18,81 @@ type AvailabilityCalendarProps = {
   billboardId: string;
   startDate: string;
   endDate: string;
-  onChange: (startDate: string, endDate: string) => void;
+
+  onChange: (
+    startDate: string,
+    endDate: string,
+  ) => void;
 };
 
-function formatISODate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+type AvailabilityDay = {
+  date: string;
+  status:
+    | "available"
+    | "taken";
+};
+
+function formatISODate(
+  date: Date,
+) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1,
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
-function parseISODate(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
+function parseISODate(
+  value: string,
+) {
+  const [
+    year,
+    month,
+    day,
+  ] = value
+    .split("-")
+    .map(Number);
 
-  return new Date(year, month - 1, day);
+  return new Date(
+    year,
+    month - 1,
+    day,
+  );
 }
 
-function startOfDay(date: Date) {
-  const result = new Date(date);
+function startOfDay(
+  date: Date,
+) {
+  const result =
+    new Date(date);
 
-  result.setHours(0, 0, 0, 0);
+  result.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
 
   return result;
 }
 
-function isBeforeToday(date: Date) {
-  return startOfDay(date) < startOfDay(new Date());
+function isBeforeToday(
+  date: Date,
+  today: Date,
+) {
+  return (
+    startOfDay(date).getTime() <
+    startOfDay(today).getTime()
+  );
 }
 
 function isBetween(
@@ -51,11 +100,53 @@ function isBetween(
   startDate: string,
   endDate: string,
 ) {
-  if (!startDate || !endDate) {
+  if (
+    !startDate ||
+    !endDate
+  ) {
     return false;
   }
 
-  return date > startDate && date < endDate;
+  return (
+    date > startDate &&
+    date < endDate
+  );
+}
+
+function rangeContainsTakenDate(
+  startDate: string,
+  endDate: string,
+  unavailable: Set<string>,
+  today: Date,
+) {
+  const cursor =
+    parseISODate(startDate);
+
+  const end =
+    parseISODate(endDate);
+
+  while (
+    cursor <= end
+  ) {
+    const key =
+      formatISODate(cursor);
+
+    if (
+      unavailable.has(key) ||
+      isBeforeToday(
+        cursor,
+        today,
+      )
+    ) {
+      return true;
+    }
+
+    cursor.setDate(
+      cursor.getDate() + 1,
+    );
+  }
+
+  return false;
 }
 
 export default function AvailabilityCalendar({
@@ -64,195 +155,272 @@ export default function AvailabilityCalendar({
   endDate,
   onChange,
 }: AvailabilityCalendarProps) {
-  const today = useMemo(() => {
-    const now = new Date();
+  /*
+   * Do NOT calculate new Date()
+   * during the first render.
+   *
+   * This prevents hydration mismatch.
+   */
+  const [today, setToday] =
+    useState<Date | null>(null);
 
-    return new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+  useEffect(() => {
+    setToday(
+      startOfDay(
+        new Date(),
+      ),
     );
   }, []);
 
-  const [currentMonth, setCurrentMonth] = useState(
-    new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      1,
-    ),
-  );
+  /*
+   * Stable server/client initial value.
+   *
+   * After mounting we replace it
+   * with the actual current month.
+   */
+  const [currentMonth, setCurrentMonth] =
+    useState(
+      () =>
+        new Date(
+          2026,
+          7,
+          1,
+        ),
+    );
 
-  const [unavailableDates, setUnavailableDates] =
-    useState<string[]>([]);
+  useEffect(() => {
+    const now =
+      new Date();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [selectingEnd, setSelectingEnd] = useState(false);
+    setCurrentMonth(
+      new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+      ),
+    );
+  }, []);
+
+  const [
+    unavailableDates,
+    setUnavailableDates,
+  ] = useState<string[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [selectingEnd, setSelectingEnd] =
+    useState(false);
 
   /*
    * ----------------------------------------------------------
    * LOAD AVAILABILITY
    * ----------------------------------------------------------
-   *
-   * IMPORTANT:
-   * JavaScript months are 0-based.
-   * Our API uses normal months:
-   *
-   * January = 1
-   * August = 8
    */
-  const loadAvailability = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const loadAvailability =
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
+          setError("");
 
-      const month = currentMonth.getMonth() + 1;
-      const year = currentMonth.getFullYear();
+          /*
+           * IMPORTANT:
+           *
+           * JS:
+           * August = 7
+           *
+           * API:
+           * August = 8
+           */
+          const month =
+            currentMonth.getMonth() +
+            1;
 
-      const response = await fetch(
-        `/api/billboards/${encodeURIComponent(
-          billboardId,
-        )}/availability?month=${month}&year=${year}`,
-        {
-          method: "GET",
-          cache: "no-store",
-        },
-      );
+          const year =
+            currentMonth.getFullYear();
 
-      if (!response.ok) {
-        const text = await response.text();
+          const response =
+            await fetch(
+              `/api/billboards/${encodeURIComponent(
+                billboardId,
+              )}/availability?month=${month}&year=${year}`,
+              {
+                cache:
+                  "no-store",
+              },
+            );
 
-        console.error(
-          "Availability API error:",
-          response.status,
-          text,
-        );
+          if (!response.ok) {
+            throw new Error(
+              `Availability request failed: ${response.status}`,
+            );
+          }
 
-        throw new Error(
-          `Failed to load availability: ${response.status}`,
-        );
-      }
+          const data =
+            await response.json();
 
-      const data = await response.json();
-
-      /*
-       * API returns:
-       *
-       * {
-       *   days: [
-       *     {
-       *       date: "2026-08-27",
-       *       status: "taken"
-       *     }
-       *   ]
-       * }
-       */
-
-      const taken = Array.isArray(data.days)
-        ? data.days
-            .filter(
-              (item: {
-                date: string;
-                status: string;
-              }) => item.status === "taken",
+          const days:
+            AvailabilityDay[] =
+            Array.isArray(
+              data.days,
             )
-            .map(
-              (item: {
-                date: string;
-              }) => item.date,
-            )
-        : [];
+              ? data.days
+              : [];
 
-      setUnavailableDates(taken);
-    } catch (error) {
-      console.error(
-        "Availability loading error:",
-        error,
-      );
+          const takenDates =
+            days
+              .filter(
+                (day) =>
+                  day.status ===
+                  "taken",
+              )
+              .map(
+                (day) =>
+                  day.date,
+              );
 
-      setUnavailableDates([]);
+          setUnavailableDates(
+            takenDates,
+          );
+        } catch (error) {
+          console.error(
+            "Availability loading error:",
+            error,
+          );
 
-      setError(
-        "Unable to load billboard availability.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [billboardId, currentMonth]);
+          setError(
+            "Unable to load billboard availability.",
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      [
+        billboardId,
+        currentMonth,
+      ],
+    );
 
   useEffect(() => {
     loadAvailability();
-  }, [loadAvailability]);
+  }, [
+    loadAvailability,
+  ]);
 
   /*
    * Refresh availability every 15 seconds.
    */
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      loadAvailability();
-    }, 15000);
+    const interval =
+      window.setInterval(
+        loadAvailability,
+        15000,
+      );
+
+    return () =>
+      window.clearInterval(
+        interval,
+      );
+  }, [
+    loadAvailability,
+  ]);
+
+  /*
+   * Also refresh when another component
+   * announces a booking change.
+   */
+  useEffect(() => {
+    const handleBookingCreated =
+      () => {
+        loadAvailability();
+      };
+
+    window.addEventListener(
+      "booking-created",
+      handleBookingCreated,
+    );
 
     return () => {
-      window.clearInterval(interval);
+      window.removeEventListener(
+        "booking-created",
+        handleBookingCreated,
+      );
     };
-  }, [loadAvailability]);
+  }, [
+    loadAvailability,
+  ]);
 
-  const unavailableSet = useMemo(
-    () => new Set(unavailableDates),
-    [unavailableDates],
-  );
+  const unavailableSet =
+    useMemo(
+      () =>
+        new Set(
+          unavailableDates,
+        ),
+      [unavailableDates],
+    );
 
   /*
    * ----------------------------------------------------------
    * CALENDAR DAYS
    * ----------------------------------------------------------
    */
-  const calendarDays = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
+  const calendarDays =
+    useMemo(() => {
+      const year =
+        currentMonth.getFullYear();
 
-    const firstDay = new Date(
-      year,
-      month,
-      1,
-    );
+      const month =
+        currentMonth.getMonth();
 
-    const lastDay = new Date(
-      year,
-      month + 1,
-      0,
-    );
-
-    const startingDay = firstDay.getDay();
-
-    const daysInMonth = lastDay.getDate();
-
-    const days: Array<Date | null> = [];
-
-    for (
-      let i = 0;
-      i < startingDay;
-      i++
-    ) {
-      days.push(null);
-    }
-
-    for (
-      let day = 1;
-      day <= daysInMonth;
-      day++
-    ) {
-      days.push(
+      const firstDay =
         new Date(
           year,
           month,
-          day,
-        ),
-      );
-    }
+          1,
+        );
 
-    return days;
-  }, [currentMonth]);
+      const lastDay =
+        new Date(
+          year,
+          month + 1,
+          0,
+        );
+
+      const days:
+        Array<Date | null> =
+        [];
+
+      for (
+        let i = 0;
+        i < firstDay.getDay();
+        i++
+      ) {
+        days.push(null);
+      }
+
+      for (
+        let day = 1;
+        day <=
+        lastDay.getDate();
+        day++
+      ) {
+        days.push(
+          new Date(
+            year,
+            month,
+            day,
+          ),
+        );
+      }
+
+      return days;
+    }, [
+      currentMonth,
+    ]);
 
   const monthLabel =
     currentMonth.toLocaleDateString(
@@ -263,239 +431,208 @@ export default function AvailabilityCalendar({
       },
     );
 
-  /*
-   * ----------------------------------------------------------
-   * MONTH NAVIGATION
-   * ----------------------------------------------------------
-   */
-
   const isCurrentMonth =
+    today !== null &&
     currentMonth.getFullYear() ===
       today.getFullYear() &&
     currentMonth.getMonth() ===
       today.getMonth();
 
-  const goPreviousMonth = () => {
-    if (isCurrentMonth) {
-      return;
-    }
+  const goPreviousMonth =
+    () => {
+      if (
+        isCurrentMonth
+      ) {
+        return;
+      }
 
-    setCurrentMonth((current) => {
-      return new Date(
-        current.getFullYear(),
-        current.getMonth() - 1,
-        1,
+      setCurrentMonth(
+        (current) =>
+          new Date(
+            current.getFullYear(),
+            current.getMonth() -
+              1,
+            1,
+          ),
       );
-    });
-  };
+    };
 
-  const goNextMonth = () => {
-    setCurrentMonth((current) => {
-      return new Date(
-        current.getFullYear(),
-        current.getMonth() + 1,
-        1,
+  const goNextMonth =
+    () => {
+      setCurrentMonth(
+        (current) =>
+          new Date(
+            current.getFullYear(),
+            current.getMonth() +
+              1,
+            1,
+          ),
       );
-    });
-  };
+    };
 
   /*
    * ----------------------------------------------------------
    * DATE CLICK
    * ----------------------------------------------------------
    */
-  const handleDateClick = (date: Date) => {
-    const dateString = formatISODate(date);
+  const handleDateClick =
+    (date: Date) => {
+      if (!today) {
+        return;
+      }
 
-    setError("");
-
-    /*
-     * Past dates cannot be selected.
-     */
-    if (isBeforeToday(date)) {
-      return;
-    }
-
-    /*
-     * Already booked dates cannot be selected.
-     */
-    if (unavailableSet.has(dateString)) {
-      return;
-    }
-
-    /*
-     * FIRST CLICK
-     *
-     * Select start date.
-     */
-    if (
-      !startDate ||
-      (startDate && endDate) ||
-      !selectingEnd
-    ) {
-      onChange(dateString, "");
-
-      setSelectingEnd(true);
-
-      return;
-    }
-
-    /*
-     * If user selects a date before
-     * the current start date,
-     * make it the new start.
-     */
-    if (dateString < startDate) {
-      onChange(dateString, "");
-
-      setSelectingEnd(true);
-
-      return;
-    }
-
-    /*
-     * SECOND CLICK
-     *
-     * Check every day in the range.
-     */
-    const rangeStart =
-      parseISODate(startDate);
-
-    const rangeEnd = date;
-
-    const cursor = new Date(rangeStart);
-
-    while (cursor <= rangeEnd) {
-      const current =
-        formatISODate(cursor);
+      const dateString =
+        formatISODate(date);
 
       if (
-        unavailableSet.has(current) ||
-        isBeforeToday(cursor)
+        isBeforeToday(
+          date,
+          today,
+        )
+      ) {
+        return;
+      }
+
+      if (
+        unavailableSet.has(
+          dateString,
+        )
       ) {
         setError(
-          "Your selected range contains a date that is already taken.",
+          `${date.toLocaleDateString(
+            "en-US",
+            {
+              month:
+                "long",
+              day: "numeric",
+              year: "numeric",
+            },
+          )} is already taken.`,
         );
 
         return;
       }
 
-      cursor.setDate(
-        cursor.getDate() + 1,
+      /*
+       * First click.
+       */
+      if (
+        !startDate ||
+        endDate ||
+        !selectingEnd
+      ) {
+        onChange(
+          dateString,
+          "",
+        );
+
+        setSelectingEnd(true);
+        setError("");
+
+        return;
+      }
+
+      /*
+       * Second click.
+       *
+       * If user clicked before the
+       * start date, swap them.
+       */
+      const finalStart =
+        dateString <
+        startDate
+          ? dateString
+          : startDate;
+
+      const finalEnd =
+        dateString <
+        startDate
+          ? startDate
+          : dateString;
+
+      if (
+        rangeContainsTakenDate(
+          finalStart,
+          finalEnd,
+          unavailableSet,
+          today,
+        )
+      ) {
+        setError(
+          "Your selected range contains a date that is already taken. Please choose another range.",
+        );
+
+        return;
+      }
+
+      setError("");
+
+      onChange(
+        finalStart,
+        finalEnd,
       );
-    }
 
-    onChange(
-      startDate,
-      dateString,
-    );
-
-    setSelectingEnd(false);
-  };
+      setSelectingEnd(false);
+    };
 
   return (
     <div className="w-full">
       {/* Header */}
 
-      <div
-        className="
-          flex items-center justify-between
-          border-b border-slate-200
-          px-5 py-4
-          dark:border-slate-800
-        "
-      >
+      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
         <div>
-          <h3
-            className="
-              text-lg font-extrabold
-              text-slate-950
-              dark:text-white
-            "
-          >
+          <h3 className="text-lg font-extrabold text-slate-950 dark:text-white">
             {monthLabel}
           </h3>
 
-          <p
-            className="
-              mt-1 text-xs
-              text-slate-500
-              dark:text-slate-400
-            "
-          >
-            Select your campaign dates.
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Select an available campaign date.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={goPreviousMonth}
-            disabled={isCurrentMonth}
-            className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-lg
-              border border-slate-200
-              text-slate-600
-              transition
-              hover:border-orange-300
-              hover:text-orange-600
-              disabled:cursor-not-allowed
-              disabled:opacity-30
-              dark:border-slate-700
-              dark:text-slate-300
-            "
+            onClick={
+              goPreviousMonth
+            }
+            disabled={
+              isCurrentMonth ||
+              !today
+            }
+            aria-label="Previous month"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-orange-300 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-700 dark:text-slate-300 dark:hover:border-orange-500/50 dark:hover:text-orange-400"
           >
-            <ChevronLeft size={17} />
+            <ChevronLeft
+              size={17}
+            />
           </button>
 
           <button
             type="button"
-            onClick={goNextMonth}
-            className="
-              flex h-9 w-9
-              items-center justify-center
-              rounded-lg
-              border border-slate-200
-              text-slate-600
-              transition
-              hover:border-orange-300
-              hover:text-orange-600
-              dark:border-slate-700
-              dark:text-slate-300
-            "
+            onClick={
+              goNextMonth
+            }
+            aria-label="Next month"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-orange-300 hover:text-orange-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-orange-500/50 dark:hover:text-orange-400"
           >
-            <ChevronRight size={17} />
+            <ChevronRight
+              size={17}
+            />
           </button>
         </div>
       </div>
 
+      {/* Calendar */}
+
       <div className="p-5">
         {error && (
-          <div
-            className="
-              mb-4 rounded-xl
-              border border-red-200
-              bg-red-50
-              px-4 py-3
-              text-sm font-medium
-              text-red-700
-              dark:border-red-900/50
-              dark:bg-red-950/30
-              dark:text-red-400
-            "
-          >
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
             {error}
           </div>
         )}
 
-        <div
-          className="
-            grid grid-cols-7
-            gap-1 sm:gap-2
-          "
-        >
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {[
             "Sun",
             "Mon",
@@ -504,22 +641,16 @@ export default function AvailabilityCalendar({
             "Thu",
             "Fri",
             "Sat",
-          ].map((day) => (
-            <div
-              key={day}
-              className="
-                py-2 text-center
-                text-[10px]
-                font-extrabold
-                uppercase
-                tracking-wider
-                text-slate-400
-                sm:text-xs
-              "
-            >
-              {day}
-            </div>
-          ))}
+          ].map(
+            (day) => (
+              <div
+                key={day}
+                className="py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-400 sm:text-xs"
+              >
+                {day}
+              </div>
+            ),
+          )}
 
           {calendarDays.map(
             (date, index) => {
@@ -533,7 +664,9 @@ export default function AvailabilityCalendar({
               }
 
               const dateString =
-                formatISODate(date);
+                formatISODate(
+                  date,
+                );
 
               const unavailable =
                 unavailableSet.has(
@@ -541,13 +674,20 @@ export default function AvailabilityCalendar({
                 );
 
               const past =
-                isBeforeToday(date);
+                today
+                  ? isBeforeToday(
+                      date,
+                      today,
+                    )
+                  : false;
 
               const selectedStart =
-                dateString === startDate;
+                dateString ===
+                startDate;
 
               const selectedEnd =
-                dateString === endDate;
+                dateString ===
+                endDate;
 
               const inRange =
                 isBetween(
@@ -561,34 +701,51 @@ export default function AvailabilityCalendar({
                 selectedEnd;
 
               const disabled =
-                past || unavailable;
+                !today ||
+                past ||
+                unavailable;
 
               const isToday =
-                formatISODate(today) ===
-                dateString;
+                today
+                  ? formatISODate(
+                      today,
+                    ) ===
+                    dateString
+                  : false;
+
+              let title =
+                "Available";
+
+              if (!today) {
+                title =
+                  "Loading...";
+              } else if (past) {
+                title =
+                  "Past date";
+              } else if (
+                unavailable
+              ) {
+                title =
+                  "This date is already taken";
+              }
 
               return (
                 <button
-                  key={dateString}
+                  key={
+                    dateString
+                  }
                   type="button"
-                  disabled={disabled}
+                  disabled={
+                    disabled
+                  }
                   onClick={() =>
-                    handleDateClick(date)
+                    handleDateClick(
+                      date,
+                    )
                   }
-                  title={
-                    past
-                      ? "Past date"
-                      : unavailable
-                        ? "This date is already taken"
-                        : "Available"
-                  }
+                  title={title}
                   className={`
-                    relative flex h-11 w-full
-                    items-center justify-center
-                    rounded-xl text-sm
-                    font-bold transition
-                    sm:h-12
-
+                    relative flex h-11 w-full items-center justify-center rounded-xl text-sm font-bold transition sm:h-12
                     ${
                       disabled
                         ? "cursor-not-allowed bg-slate-100 text-slate-300 dark:bg-slate-950 dark:text-slate-700"
@@ -596,40 +753,30 @@ export default function AvailabilityCalendar({
                           ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
                           : inRange
                             ? "bg-orange-100 text-orange-800 dark:bg-orange-500/10 dark:text-orange-300"
-                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
                     }
                   `}
                 >
                   {date.getDate()}
 
-                  {isToday && !selected && (
-                    <span
-                      className="
-                        absolute bottom-1
-                        h-1 w-1 rounded-full
-                        bg-orange-500
-                      "
-                    />
-                  )}
+                  {isToday &&
+                    !selected && (
+                      <span className="absolute bottom-1 h-1 w-1 rounded-full bg-orange-500" />
+                    )}
 
                   {unavailable && (
-                    <span
-                      className="
-                        absolute right-1 top-1
-                        text-red-400
-                      "
-                    >
-                      <X size={11} />
+                    <span className="absolute right-1 top-1 text-red-400">
+                      <X
+                        size={11}
+                      />
                     </span>
                   )}
 
                   {selected && (
-                    <span
-                      className="
-                        absolute right-1 top-1
-                      "
-                    >
-                      <Check size={11} />
+                    <span className="absolute right-1 top-1">
+                      <Check
+                        size={11}
+                      />
                     </span>
                   )}
                 </button>
@@ -638,55 +785,43 @@ export default function AvailabilityCalendar({
           )}
         </div>
 
-        {/* Legend */}
-
-        <div
-          className="
-            mt-6 flex flex-wrap
-            gap-x-5 gap-y-3
-            border-t border-slate-200
-            pt-5
-            dark:border-slate-800
-          "
-        >
+        <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 border-t border-slate-200 pt-5 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-emerald-500" />
-            <span className="text-xs text-slate-500">
+
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Available
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-orange-600" />
-            <span className="text-xs text-slate-500">
+
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Selected
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-slate-300" />
-            <span className="text-xs text-slate-500">
+
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Past
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-red-400" />
-            <span className="text-xs text-slate-500">
+
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Taken
             </span>
           </div>
         </div>
 
         {loading && (
-          <div
-            className="
-              mt-4 text-center
-              text-xs font-medium
-              text-slate-400
-            "
-          >
-            Checking availability...
+          <div className="mt-4 text-center text-xs font-medium text-slate-400">
+            Updating availability...
           </div>
         )}
       </div>

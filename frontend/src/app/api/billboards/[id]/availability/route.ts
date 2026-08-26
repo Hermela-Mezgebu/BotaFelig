@@ -1,61 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
 
+type BookingStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled";
+
 type BookingRecord = {
   id: string;
   billboardId: string;
   startDate: string;
   endDate: string;
-  status:
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled";
+  status: BookingStatus;
 };
 
 /*
- * ============================================================
- * DEMO BOOKING DATA
- * ============================================================
+ * DEMO AVAILABILITY DATA
  *
- * Replace this with your database query later.
+ * Replace this with a database query later.
  *
- * For now:
+ * August 27, 2026:
+ * TAKEN for Piassa.
  *
- * August 27, 2026 = TAKEN
- *
- * September 5 - September 8, 2026 = TAKEN
+ * September 5-8, 2026:
+ * TAKEN for Piassa.
  */
 const bookings: BookingRecord[] = [
   {
-    id: "demo-booking-1",
+    id: "demo-piassa-1",
     billboardId:
       "piassa-intersection-led",
     startDate: "2026-08-27",
     endDate: "2026-08-27",
     status: "approved",
   },
-
   {
-    id: "demo-booking-2",
+    id: "demo-piassa-2",
     billboardId:
       "piassa-intersection-led",
     startDate: "2026-09-05",
     endDate: "2026-09-08",
     status: "approved",
   },
+  {
+    id: "demo-bole-1",
+    billboardId:
+      "bole-ring-road-premium",
+    startDate: "2026-09-10",
+    endDate: "2026-09-12",
+    status: "approved",
+  },
 ];
 
-function formatDateKey(date: Date) {
+function formatDateKey(
+  date: Date,
+) {
   const year =
     date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
+  const month =
+    String(
+      date.getMonth() + 1,
+    ).padStart(2, "0");
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -99,11 +110,9 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            "month and year are required",
+            "month and year are required.",
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
@@ -113,16 +122,6 @@ export async function GET(
     const year =
       Number(yearParam);
 
-    /*
-     * API uses:
-     *
-     * January = 1
-     * February = 2
-     * ...
-     * August = 8
-     * ...
-     * December = 12
-     */
     if (
       !Number.isInteger(month) ||
       month < 1 ||
@@ -131,11 +130,9 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            "month must be between 1 and 12",
+            "month must be between 1 and 12.",
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
@@ -147,20 +144,18 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            "Invalid year",
+            "Invalid year.",
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
     /*
-     * JavaScript Date:
+     * JS months:
+     * January = 0
      *
-     * new Date(year, month - 1, 1)
-     *
-     * because JavaScript months are zero-based.
+     * API months:
+     * January = 1
      */
     const firstDay =
       new Date(
@@ -169,9 +164,6 @@ export async function GET(
         1,
       );
 
-    /*
-     * Last day of requested month.
-     */
     const lastDay =
       new Date(
         year,
@@ -189,25 +181,15 @@ export async function GET(
     const cursor =
       new Date(firstDay);
 
-    /*
-     * Generate every day in this month.
-     */
     while (
       cursor <= lastDay
     ) {
       const dateKey =
         formatDateKey(cursor);
 
-      /*
-       * Find a booking for this billboard
-       * that overlaps this date.
-       */
       const booking =
         bookings.find(
           (item) => {
-            /*
-             * Different billboard.
-             */
             if (
               item.billboardId !==
               id
@@ -216,17 +198,16 @@ export async function GET(
             }
 
             /*
-             * Approved and pending
-             * bookings block the date.
-             *
-             * Rejected/cancelled bookings
-             * do NOT block it.
+             * Pending requests also block
+             * dates so two users cannot
+             * request the same space while
+             * the owner is reviewing.
              */
             if (
               item.status !==
-                "approved" &&
+                "pending" &&
               item.status !==
-                "pending"
+                "approved"
             ) {
               return false;
             }
@@ -251,38 +232,11 @@ export async function GET(
       );
     }
 
-    /*
-     * Also return unavailableDates.
-     *
-     * This makes the API compatible with
-     * either version of the calendar component.
-     */
-    const unavailableDates =
-      days
-        .filter(
-          (day) =>
-            day.status ===
-            "taken",
-        )
-        .map(
-          (day) =>
-            day.date,
-        );
-
     return NextResponse.json({
       billboardId: id,
       month,
       year,
-
-      /*
-       * Full calendar information.
-       */
       days,
-
-      /*
-       * Simple list of taken dates.
-       */
-      unavailableDates,
     });
   } catch (error) {
     console.error(
@@ -293,11 +247,9 @@ export async function GET(
     return NextResponse.json(
       {
         error:
-          "Failed to load availability",
+          "Failed to load availability.",
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }
