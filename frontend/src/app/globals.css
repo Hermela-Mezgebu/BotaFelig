@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================================
+   ROOT THEME
+========================================================= */
+
+:root {
+  --background: #f8f9ff;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --background: #080d16;
+  --foreground: #f8fafc;
+}
+
+/* =========================================================
+   BASE
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* =========================================================
+   FORM ELEMENTS
+========================================================= */
+
+input,
+select,
+button {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+select {
+  color-scheme: light;
+}
+
+.dark input,
+.dark select {
+  color-scheme: dark;
+}
+
+/* =========================================================
+   SEARCH FORM
+========================================================= */
+
+.search-field {
+  min-width: 0;
+}
+
+.search-label {
+  display: block;
+  margin-bottom: 6px;
+  padding-left: 2px;
+
+  color: #0f172a;
+
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  text-align: left;
+
+  transition: color 0.3s ease;
+}
+
+.dark .search-label {
+  color: #e2e8f0;
+}
+
+.search-input {
+  width: 100%;
+  height: 50px;
+
+  border: 1px solid #d7dce5;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  padding: 0 12px;
+
+  color: #334155;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  outline: none;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+.search-input:hover {
+  border-color: #c3cbd7;
+}
+
+.search-input:focus {
+  border-color: #ea580c;
+
+  box-shadow:
+    0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+/* Dark mode search input */
+
+.dark .search-input {
+  border-color: #334155;
+  background: #111827;
+  color: #f8fafc;
+}
+
+.dark .search-input::placeholder {
+  color: #64748b;
+}
+
+.dark .search-input:hover {
+  border-color: #475569;
+}
+
+.dark .search-input:focus {
+  border-color: #f97316;
+
+  box-shadow:
+    0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* =========================================================
+   DATE INPUT
+========================================================= */
+
+input[type="date"] {
+  color-scheme: light;
+}
+
+.dark input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+}
+
+/* =========================================================
+   SELECT OPTIONS
+========================================================= */
+
+select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.dark select option {
+  background: #111827;
+  color: #f8fafc;
+}
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+::selection {
+  background: #ea580c;
+  color: #ffffff;
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.dark::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* =========================================================
+   MOBILE SEARCH
+========================================================= */
+
+@media (max-width: 768px) {
+  .search-input {
+    height: 48px;
+  }
+}
+
+/* =========================================================
+   REDUCE MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
