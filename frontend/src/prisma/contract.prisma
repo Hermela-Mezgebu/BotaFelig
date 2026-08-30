@@ -1,21 +1,126 @@
 // use prisma-next
-
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+enum UserRole {
+  ADVERTISER
+  OWNER
+  ADMIN
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+enum BillboardType {
+  STATIC
+  LED
+  DIGITAL
+}
+
+enum BillboardStatus {
+  AVAILABLE
+  MAINTENANCE
+  INACTIVE
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING
+  PARTIALLY_APPROVED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id              String
+  email           String
+  name            String?
+  phone           String?
+  role            UserRole
+  createdAt       TimestamptzString
+  updatedAt       TimestamptzString
+
+  ownedBillboards BillBoardOwner[]
+  campaigns       Campaign[]
+  bookings        Booking[]
+}
+
+model Billboard {
+  id            String
+  slug          String
+  title         String
+  location      String
+  description   String?
+  type          BillboardType
+  status        BillboardStatus
+  pricePerDay   Decimal
+  latitude      Decimal?
+  longitude     Decimal?
+  imageUrl      String?
+  isActive      Boolean
+  createdAt     TimestamptzString
+  updatedAt     TimestamptzString
+
+  owners        BillBoardOwner[]
+  campaignItems CampaignItem[]
+  bookings      Booking[]
+}
+
+model BillBoardOwner {
+  id          String
+  userId      String
+  billboardId String
+  createdAt   TimestamptzString
+
+  user        User              @relation(fields:[userId], references:[id])
+  billboard   Billboard         @relation(fields:[billboardId], references:[id])
+}
+
+model Campaign {
+  id           String
+  reference    String
+  advertiserId String
+  name         String
+  startDate    String?
+  endDate      String?
+  status       CampaignStatus
+  createdAt    TimestamptzString
+  updatedAt    TimestamptzString
+
+  advertiser   User              @relation(fields:[advertiserId], references:[id])
+  items        CampaignItem[]
+}
+
+model CampaignItem {
+  id          String
+  campaignId  String
+  billboardId String
+  startDate   String
+  endDate     String
+  createdAt   TimestamptzString
+
+  campaign    Campaign          @relation(fields:[campaignId], references:[id])
+  billboard   Billboard         @relation(fields:[billboardId], references:[id])
+  booking     Booking?
+}
+
+model Booking {
+  id                String
+  reference         String
+  campaignItemId    String            @unique
+  billboardId       String
+  advertiserId      String
+  startDate         String
+  endDate           String
+  status            BookingStatus
+  ownerMessage      String?
+  advertiserMessage String?
+  createdAt         TimestamptzString
+  updatedAt         TimestamptzString
+
+  campaignItem      CampaignItem      @relation(fields:[campaignItemId], references:[id])
+  billboard         Billboard         @relation(fields:[billboardId], references:[id])
+  advertiser        User              @relation(fields:[advertiserId], references:[id])
 }

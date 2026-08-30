@@ -5,7 +5,7 @@ import {
   datesOverlap,
   generateBookingId,
   parseDate,
-} from "@/lib/bookingStore";
+} from "@/lib/bookings";
 
 export async function POST(
   request: NextRequest,

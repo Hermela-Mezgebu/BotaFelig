@@ -4,8 +4,24 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
-    "post": {
-      "model": "Post",
+    "billBoardOwner": {
+      "model": "BillBoardOwner",
+      "namespace": "public"
+    },
+    "billboard": {
+      "model": "Billboard",
+      "namespace": "public"
+    },
+    "booking": {
+      "model": "Booking",
+      "namespace": "public"
+    },
+    "campaign": {
+      "model": "Campaign",
+      "namespace": "public"
+    },
+    "campaignItem": {
+      "model": "CampaignItem",
       "namespace": "public"
     },
     "user": {
@@ -16,18 +32,114 @@
   "domain": {
     "namespaces": {
       "public": {
-        "models": {
-          "Post": {
-            "fields": {
-              "authorId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
+        "enum": {
+          "BillboardStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "AVAILABLE",
+                "value": "AVAILABLE"
               },
-              "content": {
-                "nullable": true,
+              {
+                "name": "MAINTENANCE",
+                "value": "MAINTENANCE"
+              },
+              {
+                "name": "INACTIVE",
+                "value": "INACTIVE"
+              }
+            ]
+          },
+          "BillboardType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "STATIC",
+                "value": "STATIC"
+              },
+              {
+                "name": "LED",
+                "value": "LED"
+              },
+              {
+                "name": "DIGITAL",
+                "value": "DIGITAL"
+              }
+            ]
+          },
+          "BookingStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
+              },
+              {
+                "name": "CANCELLED",
+                "value": "CANCELLED"
+              }
+            ]
+          },
+          "CampaignStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "PARTIALLY_APPROVED",
+                "value": "PARTIALLY_APPROVED"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
+              },
+              {
+                "name": "CANCELLED",
+                "value": "CANCELLED"
+              }
+            ]
+          },
+          "UserRole": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ADVERTISER",
+                "value": "ADVERTISER"
+              },
+              {
+                "name": "OWNER",
+                "value": "OWNER"
+              },
+              {
+                "name": "ADMIN",
+                "value": "ADMIN"
+              }
+            ]
+          }
+        },
+        "models": {
+          "BillBoardOwner": {
+            "fields": {
+              "billboardId": {
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -43,31 +155,39 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "title": {
+              "userId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
-              "author": {
+              "billboard": {
                 "cardinality": "N:1",
                 "on": {
                   "localFields": [
-                    "authorId"
+                    "billboardId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Billboard",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
                   ],
                   "targetFields": [
                     "id"
@@ -81,11 +201,8 @@
             },
             "storage": {
               "fields": {
-                "authorId": {
-                  "column": "authorId"
-                },
-                "content": {
-                  "column": "content"
+                "billboardId": {
+                  "column": "billboardId"
                 },
                 "createdAt": {
                   "column": "createdAt"
@@ -93,15 +210,659 @@
                 "id": {
                   "column": "id"
                 },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "billBoardOwner"
+            }
+          },
+          "Billboard": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "imageUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "latitude": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "location": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "longitude": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "pricePerDay": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "slug": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "BillboardStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "BillboardType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "bookings": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "billboardId"
+                  ]
+                },
+                "to": {
+                  "model": "Booking",
+                  "namespace": "public"
+                }
+              },
+              "campaignItems": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "billboardId"
+                  ]
+                },
+                "to": {
+                  "model": "CampaignItem",
+                  "namespace": "public"
+                }
+              },
+              "owners": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "billboardId"
+                  ]
+                },
+                "to": {
+                  "model": "BillBoardOwner",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "imageUrl": {
+                  "column": "imageUrl"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "latitude": {
+                  "column": "latitude"
+                },
+                "location": {
+                  "column": "location"
+                },
+                "longitude": {
+                  "column": "longitude"
+                },
+                "pricePerDay": {
+                  "column": "pricePerDay"
+                },
+                "slug": {
+                  "column": "slug"
+                },
+                "status": {
+                  "column": "status"
+                },
                 "title": {
                   "column": "title"
+                },
+                "type": {
+                  "column": "type"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
                 }
               },
               "namespaceId": "public",
-              "table": "post"
+              "table": "billboard"
+            }
+          },
+          "Booking": {
+            "fields": {
+              "advertiserId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "advertiserMessage": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "billboardId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "campaignItemId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "endDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "ownerMessage": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reference": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "BookingStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "advertiser": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "advertiserId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "billboard": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "billboardId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Billboard",
+                  "namespace": "public"
+                }
+              },
+              "campaignItem": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "campaignItemId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "CampaignItem",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "advertiserId": {
+                  "column": "advertiserId"
+                },
+                "advertiserMessage": {
+                  "column": "advertiserMessage"
+                },
+                "billboardId": {
+                  "column": "billboardId"
+                },
+                "campaignItemId": {
+                  "column": "campaignItemId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "endDate": {
+                  "column": "endDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ownerMessage": {
+                  "column": "ownerMessage"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "startDate": {
+                  "column": "startDate"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "booking"
+            }
+          },
+          "Campaign": {
+            "fields": {
+              "advertiserId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "endDate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reference": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startDate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "CampaignStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "advertiser": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "advertiserId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "items": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "campaignId"
+                  ]
+                },
+                "to": {
+                  "model": "CampaignItem",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "advertiserId": {
+                  "column": "advertiserId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "endDate": {
+                  "column": "endDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "startDate": {
+                  "column": "startDate"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "campaign"
+            }
+          },
+          "CampaignItem": {
+            "fields": {
+              "billboardId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "campaignId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "endDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "billboard": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "billboardId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Billboard",
+                  "namespace": "public"
+                }
+              },
+              "booking": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "campaignItemId"
+                  ]
+                },
+                "to": {
+                  "model": "Booking",
+                  "namespace": "public"
+                }
+              },
+              "campaign": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "campaignId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Campaign",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "billboardId": {
+                  "column": "billboardId"
+                },
+                "campaignId": {
+                  "column": "campaignId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "endDate": {
+                  "column": "endDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "startDate": {
+                  "column": "startDate"
+                }
+              },
+              "namespaceId": "public",
+              "table": "campaignItem"
             }
           },
           "User": {
@@ -123,7 +884,7 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -134,34 +895,77 @@
                   "kind": "scalar"
                 }
               },
+              "phone": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "UserRole",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
-              },
-              "username": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
-              "posts": {
+              "bookings": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
                     "id"
                   ],
                   "targetFields": [
-                    "authorId"
+                    "advertiserId"
                   ]
                 },
                 "to": {
-                  "model": "Post",
+                  "model": "Booking",
+                  "namespace": "public"
+                }
+              },
+              "campaigns": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "advertiserId"
+                  ]
+                },
+                "to": {
+                  "model": "Campaign",
+                  "namespace": "public"
+                }
+              },
+              "ownedBillboards": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "BillBoardOwner",
                   "namespace": "public"
                 }
               }
@@ -180,11 +984,14 @@
                 "name": {
                   "column": "name"
                 },
+                "phone": {
+                  "column": "phone"
+                },
+                "role": {
+                  "column": "role"
+                },
                 "updatedAt": {
                   "column": "updatedAt"
-                },
-                "username": {
-                  "column": "username"
                 }
               },
               "namespaceId": "public",
@@ -200,40 +1007,253 @@
       "public": {
         "entries": {
           "table": {
-            "post": {
+            "billBoardOwner": {
               "columns": {
-                "authorId": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "content": {
+                "billboardId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/int4@1",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
-                  "nativeType": "int4",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "billBoardOwner"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "billboardId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "billBoardOwner"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "billboard"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "billboardId"
+                  ],
+                  "name": "billBoardOwner_billboardId_idx_d9f3c5c7",
+                  "prefix": "billBoardOwner_billboardId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "billBoardOwner_userId_idx_a489d58a",
+                  "prefix": "billBoardOwner_userId_idx",
+                  "unique": false
+                }
+              ],
+              "uniques": []
+            },
+            "billboard": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('AVAILABLE', 'MAINTENANCE', 'INACTIVE')",
+                  "name": "billboard_status_check_ab3a9241",
+                  "prefix": "billboard_status_check"
+                },
+                {
+                  "expression": "\"type\" IN ('STATIC', 'LED', 'DIGITAL')",
+                  "name": "billboard_type_check_0227072c",
+                  "prefix": "billboard_type_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "imageUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "latitude": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
+                },
+                "location": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "longitude": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
+                },
+                "pricePerDay": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "slug": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "BillboardStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "title": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "BillboardType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "uniques": []
+            },
+            "booking": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED')",
+                  "name": "booking_status_check_57fe5f48",
+                  "prefix": "booking_status_check"
+                }
+              ],
+              "columns": {
+                "advertiserId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "advertiserMessage": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "billboardId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "campaignItemId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "endDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "ownerMessage": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "startDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "BookingStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -245,10 +1265,42 @@
                 {
                   "source": {
                     "columns": [
-                      "authorId"
+                      "campaignItemId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "post"
+                    "tableName": "booking"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "campaignItem"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "billboardId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "booking"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "billboard"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "advertiserId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "booking"
                   },
                   "target": {
                     "columns": [
@@ -262,28 +1314,218 @@
               "indexes": [
                 {
                   "columns": [
-                    "authorId"
+                    "advertiserId"
                   ],
-                  "name": "post_authorId_idx_e47547ed",
-                  "prefix": "post_authorId_idx",
+                  "name": "booking_advertiserId_idx_d211eb82",
+                  "prefix": "booking_advertiserId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "billboardId"
+                  ],
+                  "name": "booking_billboardId_idx_d9f3c5c7",
+                  "prefix": "booking_billboardId_idx",
                   "unique": false
                 }
               ],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+              "uniques": [
+                {
+                  "columns": [
+                    "campaignItemId"
+                  ]
+                }
+              ]
+            },
+            "campaign": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('DRAFT', 'PENDING', 'PARTIALLY_APPROVED', 'APPROVED', 'REJECTED', 'CANCELLED')",
+                  "name": "campaign_status_check_3eb9a387",
+                  "prefix": "campaign_status_check"
+                }
+              ],
+              "columns": {
+                "advertiserId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "endDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "startDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "CampaignStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
               },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "advertiserId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "campaign"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "advertiserId"
+                  ],
+                  "name": "campaign_advertiserId_idx_d211eb82",
+                  "prefix": "campaign_advertiserId_idx",
+                  "unique": false
+                }
+              ],
+              "uniques": []
+            },
+            "campaignItem": {
+              "columns": {
+                "billboardId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "campaignId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "endDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "startDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "campaignId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "campaignItem"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "campaign"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "billboardId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "campaignItem"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "billboard"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "billboardId"
+                  ],
+                  "name": "campaignItem_billboardId_idx_d9f3c5c7",
+                  "prefix": "campaignItem_billboardId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "campaignId"
+                  ],
+                  "name": "campaignItem_campaignId_idx_3aacd648",
+                  "prefix": "campaignItem_campaignId_idx",
+                  "unique": false
+                }
+              ],
               "uniques": []
             },
             "user": {
+              "checks": [
+                {
+                  "expression": "\"role\" IN ('ADVERTISER', 'OWNER', 'ADMIN')",
+                  "name": "user_role_check_2c231c00",
+                  "prefix": "user_role_check"
+                }
+              ],
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
@@ -293,12 +1535,8 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/int4@1",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
-                  "nativeType": "int4",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 },
                 "name": {
@@ -306,30 +1544,76 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "phone": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "role": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "UserRole",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": false
-                },
-                "username": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 }
               },
               "foreignKeys": [],
               "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "email"
-                  ]
-                }
+              "uniques": []
+            }
+          },
+          "valueSet": {
+            "BillboardStatus": {
+              "kind": "valueSet",
+              "values": [
+                "AVAILABLE",
+                "MAINTENANCE",
+                "INACTIVE"
+              ]
+            },
+            "BillboardType": {
+              "kind": "valueSet",
+              "values": [
+                "STATIC",
+                "LED",
+                "DIGITAL"
+              ]
+            },
+            "BookingStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            },
+            "CampaignStatus": {
+              "kind": "valueSet",
+              "values": [
+                "DRAFT",
+                "PENDING",
+                "PARTIALLY_APPROVED",
+                "APPROVED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            },
+            "UserRole": {
+              "kind": "valueSet",
+              "values": [
+                "ADVERTISER",
+                "OWNER",
+                "ADMIN"
               ]
             }
           }
@@ -338,44 +1622,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1e8412e162dbbe69f4bb3bf8d07f0280ae67eaab15c34dcf201e67468315428d"
-  },
-  "execution": {
-    "executionHash": "4abff323cc88151ef9c9a0ec90122cfee6d46814a118cdb66a9fdd94a4123463",
-    "mutations": {
-      "defaults": [
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "ref": {
-            "column": "updatedAt",
-            "namespace": "public",
-            "table": "post"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "ref": {
-            "column": "updatedAt",
-            "namespace": "public",
-            "table": "user"
-          }
-        }
-      ]
-    }
+    "storageHash": "7f8e981f41962e7bf0ef63a0902b54c59302defb1852479afba13e8426a18c4f"
   },
   "capabilities": {
     "postgres": {

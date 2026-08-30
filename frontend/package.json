@@ -12,6 +12,7 @@
     "contract:emit": "prisma contract emit"
   },
   "dependencies": {
+    "@prisma/cli-engine": "^0.3.0",
     "@prisma/client": "^7.10.0",
     "@prisma/orm-postgres": "^8.0.0-rc.8",
     "dotenv": "^17.4.2",
@@ -21,7 +22,6 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@prisma/cli-engine": "^0.2.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
